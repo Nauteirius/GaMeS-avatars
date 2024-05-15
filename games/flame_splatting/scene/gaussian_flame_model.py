@@ -85,17 +85,46 @@ class GaussianFlameModel(GaussianModel):
         self._opacity = nn.Parameter(opacities.requires_grad_(True))
         self.max_radii2D = torch.zeros((self.get_xyz.shape[0]), device="cuda")
 
-    def create_flame_params(self):
+    def create_flame_params(self,pose,intrisic,expression):
         """
         Create manipulation parameters FLAME model.
 
         Each parameter is responsible for something different,
         respectively: shape, facial expression, etc.
         """
-        self._flame_shape = nn.Parameter(self.point_cloud.flame_model_shape_init.requires_grad_(True))
-        self._flame_exp = nn.Parameter(self.point_cloud.flame_model_expression_init.requires_grad_(True))
-        self._flame_pose = nn.Parameter(self.point_cloud.flame_model_pose_init.requires_grad_(True))
-        self._flame_neck_pose = nn.Parameter(self.point_cloud.flame_model_neck_pose_init.requires_grad_(True))
+
+        #
+        #Get vectors pose, intrinsic, expression
+        #
+        combined_vector = torch.cat((pose.view(-1), intrisic.view(-1), expression.view(-1)), dim=0) 
+        # combined_vector.size() = [101]
+        #flatten()
+        input_size = combined_vector.size()
+        output_size = x #size is sum of all self._flame vectors
+        fc_layer = nn.Linear(input_size, output_size)
+        vec = fc_layer(combined_vector)
+
+                #
+        #   
+
+        #
+
+
+        #
+        #
+        boundary=0
+        self._flame_shape = nn.Parameter(self.point_cloud.flame_model_shape_init.requires_grad_(True))#
+        self._flame_shape = vec[boundary:self._flame_shape.size()]
+        boundary=boundary + self._flame_shape.size()
+        self._flame_exp = nn.Parameter(self.point_cloud.flame_model_expression_init.requires_grad_(True))#
+        self._flame_exp = vec[boundary:boundary+ self._flame_exp.size()]
+        boundary = boundary + self._flame_exp.size()
+        self._flame_pose = nn.Parameter(self.point_cloud.flame_model_pose_init.requires_grad_(True))#
+        self._flame_pose = vec[boundary:boundary+ self._flame_pose.size()]
+        boundary = boundary + self._flame_pose.size()
+        self._flame_neck_pose = nn.Parameter(self.point_cloud.flame_model_neck_pose_init.requires_grad_(True))#
+        self._flame_neck_pose = vec[boundary:boundary+ self._flame_neck_pose.size()]
+        boundary = boundary+ self._flame_neck_pose.size()
         self._flame_trans = nn.Parameter(self.point_cloud.flame_model_transl_init.requires_grad_(True))
         self.faces = self.point_cloud.faces
 
