@@ -45,7 +45,10 @@ def readNerfSyntheticMeshInfo(
     print("Reading Test Transforms")
     test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
     print("Reading Mesh object")
-    mesh_scene = trimesh.load(f'{path}/mesh.obj', force='mesh')
+    # mesh_scene = trimesh.load(f'{path}/mesh.obj', force='mesh')
+    with open(f'{path}/mesh.obj') as mesh_scene:
+        mesh_scene = trimesh.load(mesh_scene, force='mesh')
+    #3333333333333333333333333333
     vertices = mesh_scene.vertices
     vertices = transform_vertices_function(
         torch.tensor(vertices),
