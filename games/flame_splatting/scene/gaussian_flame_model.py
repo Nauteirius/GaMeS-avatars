@@ -99,50 +99,33 @@ class GaussianFlameModel(GaussianModel):
         combined_vector = torch.cat((pose.view(-1), intrisic.view(-1), expression.view(-1)), dim=0) 
         # combined_vector.size() = [101]
         #flatten()
-
-        self._flame_shape = nn.Parameter(self.point_cloud.flame_model_shape_init.requires_grad_(True))#
-        self._flame_exp = nn.Parameter(self.point_cloud.flame_model_expression_init.requires_grad_(True))#
-        self._flame_pose = nn.Parameter(self.point_cloud.flame_model_pose_init.requires_grad_(True))#
-        self._flame_neck_pose = nn.Parameter(self.point_cloud.flame_model_neck_pose_init.requires_grad_(True))#
-        self._flame_trans = nn.Parameter(self.point_cloud.flame_model_transl_init.requires_grad_(True))#
-
-        output_lenght = self._flame_shape.size()[1] + self._flame_exp.size()[1] + self._flame_pose.size()[1] + self._flame_neck_pose.size()[1] + self._flame_trans.size()[1]
-
-
-
         input_size = combined_vector.size()
-        output_size = output_lenght #size is sum of all self._flame vectors
+        output_size = x #size is sum of all self._flame vectors
         fc_layer = nn.Linear(input_size, output_size)
         vec = fc_layer(combined_vector)
-        vec = vec.view(1,-1)
-
 
                 #
         #   
-        #example: self._flame_exp.size() = 
+
         #
-        #self.f_shape = torch.zeros(1, 100).float().to(device)
-        #self.f_exp = torch.zeros(1, 50).float().to(device)
-        #self.f_pose = torch.zeros(1, 6).float().to(device)
-        #self.f_neck_pose = torch.zeros(1, 3).float().to(device)
-        #self.f_trans = torch.zeros(1, 3).float().to(device)
 
 
         #
         #
         boundary=0
-        self._flame_shape = vec[:,boundary:self._flame_shape.size()[1]]
-        boundary=boundary + self._flame_shape.size()[1]
-        self._flame_exp = vec[:,boundary:boundary+ self._flame_exp.size()[1]]
-        boundary = boundary + self._flame_exp.size()[1]
-        self._flame_pose = vec[:,boundary:boundary+ self._flame_pose.size()[1]]
-        boundary = boundary + self._flame_pose.size()[1]
-        self._flame_neck_pose = vec[:,boundary:boundary+ self._flame_neck_pose.size()[1]]
-        boundary = boundary+ self._flame_neck_pose.size()[1]
-        self._flame_trans = vec[:,boundary:boundary+ self._flame_trans.size()[1]]
-        boundary = boundary+ self._flame_trans.size()[1]
-
-        
+        self._flame_shape = nn.Parameter(self.point_cloud.flame_model_shape_init.requires_grad_(True))#
+        self._flame_shape = vec[boundary:self._flame_shape.size()]
+        boundary=boundary + self._flame_shape.size()
+        self._flame_exp = nn.Parameter(self.point_cloud.flame_model_expression_init.requires_grad_(True))#
+        self._flame_exp = vec[boundary:boundary+ self._flame_exp.size()]
+        boundary = boundary + self._flame_exp.size()
+        self._flame_pose = nn.Parameter(self.point_cloud.flame_model_pose_init.requires_grad_(True))#
+        self._flame_pose = vec[boundary:boundary+ self._flame_pose.size()]
+        boundary = boundary + self._flame_pose.size()
+        self._flame_neck_pose = nn.Parameter(self.point_cloud.flame_model_neck_pose_init.requires_grad_(True))#
+        self._flame_neck_pose = vec[boundary:boundary+ self._flame_neck_pose.size()]
+        boundary = boundary+ self._flame_neck_pose.size()
+        self._flame_trans = nn.Parameter(self.point_cloud.flame_model_transl_init.requires_grad_(True))
         self.faces = self.point_cloud.faces
 
         vertices_enlargement = torch.ones_like(self.point_cloud.vertices_init).requires_grad_(True)
